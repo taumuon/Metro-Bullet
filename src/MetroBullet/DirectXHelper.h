@@ -1,45 +1,36 @@
-#pragma once
+﻿#pragma once
 
-#include <wrl.h>
+#include <wrl/client.h>
 #include <ppl.h>
 #include <ppltasks.h>
 
 namespace DX
 {
-    inline void ThrowIfFailed(HRESULT hr)
-    {
-        if (FAILED(hr))
-        {
-            // Set a breakpoint on this line to catch DirectX API errors
-            throw Platform::Exception::CreateException(hr);
-        }
-    }
+	inline void ThrowIfFailed(HRESULT hr)
+	{
+		if (FAILED(hr))
+		{
+			// Set a breakpoint on this line to catch Win32 API errors.
+			throw Platform::Exception::CreateException(hr);
+		}
+	}
 
-	struct ByteArray { Platform::Array<byte>^ data; };
-
-	// function that reads from a binary file asynchronously
-	inline Concurrency::task<ByteArray> ReadDataAsync(Platform::String^ filename)
+	// Function that reads from a binary file asynchronously.
+	inline Concurrency::task<Platform::Array<byte>^> ReadDataAsync(Platform::String^ filename)
 	{
 		using namespace Windows::Storage;
 		using namespace Concurrency;
 		
 		auto folder = Windows::ApplicationModel::Package::Current->InstalledLocation;
 		
-		task<StorageFile^> getFileTask(folder->GetFileAsync(filename));
-
-		auto readBufferTask = getFileTask.then([] (StorageFile^ f) 
+		return create_task(folder->GetFileAsync(filename)).then([] (StorageFile^ file) 
 		{
-			return FileIO::ReadBufferAsync(f);
-		});
-
-		auto byteArrayTask = readBufferTask.then([] (Streams::IBuffer^ b) -> ByteArray 
+			return FileIO::ReadBufferAsync(file);
+		}).then([] (Streams::IBuffer^ fileBuffer) -> Platform::Array<byte>^ 
 		{
-			auto a = ref new Platform::Array<byte>(b->Length);
-			Streams::DataReader::FromBuffer(b)->ReadBytes(a);
-			ByteArray ba = { a };
-			return ba;
+			auto fileData = ref new Platform::Array<byte>(fileBuffer->Length);
+			Streams::DataReader::FromBuffer(fileBuffer)->ReadBytes(fileData);
+			return fileData;
 		});
-
-		return byteArrayTask;
 	}
 }

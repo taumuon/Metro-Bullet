@@ -388,7 +388,7 @@ void BasicLoader::LoadTextureAsync(
     _Out_opt_ ID3D11ShaderResourceView** textureView
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ textureData, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ textureData, AsyncStatus /*status*/)
     {
         CreateTexture(
             GetExtension(filename) == "dds",
@@ -444,7 +444,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_opt_ ID3D11InputLayout** layout
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreateVertexShader(
@@ -496,7 +496,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_ ID3D11PixelShader** shader
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreatePixelShader(
@@ -535,7 +535,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_ ID3D11ComputeShader** shader
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreateComputeShader(
@@ -574,7 +574,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_ ID3D11GeometryShader** shader
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreateGeometryShader(
@@ -628,7 +628,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_ ID3D11GeometryShader** shader
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreateGeometryShaderWithStreamOutput(
@@ -672,7 +672,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_ ID3D11HullShader** shader
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreateHullShader(
@@ -711,7 +711,7 @@ void BasicLoader::LoadShaderAsync(
     _Out_ ID3D11DomainShader** shader
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ bytecode, AsyncStatus /*status*/)
     {
         DX::ThrowIfFailed(
             m_d3dDevice->CreateDomainShader(
@@ -754,7 +754,7 @@ void BasicLoader::LoadMeshAsync(
     _Out_opt_ uint32* indexCount
     )
 {
-    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](Platform::Array<byte>^ meshData, AsyncStatus /*status*/)
+    m_basicReaderWriter->ReadDataAsync(filename, ref new ReadDataAsyncCallback([=](const Platform::Array<byte>^ meshData, AsyncStatus /*status*/)
     {
         CreateMesh(
             meshData->Data,

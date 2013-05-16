@@ -1,20 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
 
-  <Identity Name="62302636-db7c-452a-9104-1c555c490c7b"
+  <Identity Name="e0398cef-fc97-4d56-bd99-81abf5657ff1"
             Publisher="CN=Gary"
             Version="1.0.0.0" />
 
   <Properties>
-    <DisplayName>Metro2</DisplayName>
+    <DisplayName>MetroBullet</DisplayName>
     <PublisherDisplayName>Gary</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
-    <Description>Metro2</Description>
   </Properties>
 
   <Prerequisites>
-    <OSMinVersion>6.2</OSMinVersion>
-    <OSMaxVersionTested>6.2</OSMaxVersionTested>
+    <OSMinVersion>6.2.1</OSMinVersion>
+    <OSMaxVersionTested>6.2.1</OSMaxVersionTested>
   </Prerequisites>
 
   <Resources>
@@ -24,14 +23,14 @@
   <Applications>
     <Application Id="App"
         Executable="$targetnametoken$.exe"
-        EntryPoint="Metro2.App">
+        EntryPoint="MetroBullet.App">
         <VisualElements
-            DisplayName="Metro2"
+            DisplayName="MetroBullet"
             Logo="Assets\Logo.png"
             SmallLogo="Assets\SmallLogo.png"
-            Description="Metro2"
+            Description="MetroBullet"
             ForegroundText="light"
-            BackgroundColor="#222222">
+            BackgroundColor="#464646">
             <DefaultTile ShowName="allLogos" />
             <SplashScreen Image="Assets\SplashScreen.png" />
         </VisualElements>

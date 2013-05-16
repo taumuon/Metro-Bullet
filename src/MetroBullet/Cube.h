@@ -45,9 +45,10 @@ internal:
 
 ref class Cube
 {
+private:
+	~Cube();
 internal:
 	Cube();
-	~Cube();
 
 	uint32 GetIndexCount();
 

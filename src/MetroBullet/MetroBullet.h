@@ -4,6 +4,8 @@
 #include <wrl.h>
 #include "CubeRenderer.h"
 
+#include "Agile.h"
+
 #include <btBulletDynamicsCommon.h>
 
 class Level;
@@ -33,7 +35,7 @@ private:
 	std::unique_ptr<Level> m_level;
     CubeRenderer^ m_renderer;
 	vector<Cube^> m_cubes;
-    Windows::ApplicationModel::Core::CoreApplicationView^ m_applicationView;
+    Platform::Agile<Windows::ApplicationModel::Core::CoreApplicationView> m_applicationView;
     bool m_windowClosed;
 };
 

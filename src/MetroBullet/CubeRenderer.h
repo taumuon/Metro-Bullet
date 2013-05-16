@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <wrl.h>
 #include <memory>
@@ -19,12 +19,14 @@ struct ModelViewProjectionConstantBuffer
 
 ref class CubeRenderer : public Direct3DBase
 {
-internal:
-	CubeRenderer();
-	~CubeRenderer();
+public:
+	virtual void Render() override;
 	virtual void CreateDeviceResources() override;
 	virtual void CreateWindowSizeDependentResources() override;
-	virtual void Render() override;
+private:
+	~CubeRenderer();
+internal:
+	CubeRenderer();
 	Cube^ CreateCube();
 	void Update(float timeTotal, float timeDelta);
 

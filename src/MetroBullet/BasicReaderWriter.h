@@ -8,7 +8,7 @@
 #pragma once
 
 // Define the arguments for the async callbacks.
-delegate void ReadDataAsyncCallback(Platform::Array<byte>^, Windows::Foundation::AsyncStatus);
+delegate void ReadDataAsyncCallback(const Platform::Array<byte>^, Windows::Foundation::AsyncStatus);
 delegate void WriteDataAsyncCallback(Windows::Foundation::AsyncStatus);
 
 ref class BasicReaderWriter

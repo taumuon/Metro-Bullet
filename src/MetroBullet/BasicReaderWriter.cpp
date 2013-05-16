@@ -19,8 +19,12 @@ using namespace Concurrency;
 
 BasicReaderWriter::BasicReaderWriter()
 {
-    m_location = Package::Current->InstalledLocation;
-    m_locationPath = Platform::String::Concat(m_location->Path, "\\");
+	auto package = Windows::ApplicationModel::Package::Current;
+    m_location = package->InstalledLocation;
+	if (m_location != nullptr)
+	{
+		m_locationPath = Platform::String::Concat(m_location->Path, "\\");
+	}
 }
 
 BasicReaderWriter::BasicReaderWriter(
@@ -52,15 +56,22 @@ Platform::Array<byte>^ BasicReaderWriter::ReadData(
     extendedParams.lpSecurityAttributes = nullptr;
     extendedParams.hTemplateFile = nullptr;
 
-    Wrappers::FileHandle file(
-        CreateFile2(
-            Platform::String::Concat(m_locationPath, filename)->Data(),
+	auto folder = Windows::ApplicationModel::Package::Current->InstalledLocation;
+	Platform::String^ path = folder->Path;
+	m_locationPath = Platform::String::Concat(path, "\\");
+	Platform::String^ f = Platform::String::Concat(m_locationPath, filename);
+
+	auto fData = f->Data();
+	auto fileHandle = CreateFile2(
+            fData,
             GENERIC_READ,
-            0,
+            FILE_SHARE_READ,
             OPEN_EXISTING,
             &extendedParams
-            )
-        );
+            );
+
+    Wrappers::FileHandle file(fileHandle);
+
     if (file.Get()==INVALID_HANDLE_VALUE)
     {
         throw ref new Platform::FailureException();
@@ -126,6 +137,10 @@ uint32 BasicReaderWriter::WriteData(
     extendedParams.dwSecurityQosFlags = SECURITY_ANONYMOUS;
     extendedParams.lpSecurityAttributes = nullptr;
     extendedParams.hTemplateFile = nullptr;
+
+	auto folder = Windows::ApplicationModel::Package::Current->InstalledLocation;
+	Platform::String^ path = folder->Path;
+	m_locationPath = Platform::String::Concat(path, "\\");
 
     Wrappers::FileHandle file(
         CreateFile2(

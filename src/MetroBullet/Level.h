@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "Cube.h"
 #include "Physics.h"
 #include "CubeRenderer.h"
 
@@ -14,6 +15,6 @@ public:
 	void Update();
 private:
 	Physics m_physics;
-	vector<Cube^> m_cubes;
+	std::vector<Cube^> m_cubes;
 };
 
