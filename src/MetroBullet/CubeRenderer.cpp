@@ -11,7 +11,8 @@ using namespace DirectX;
 using namespace std;
 
 CubeRenderer::CubeRenderer() :
-    m_loadingComplete(false)
+    m_loadingComplete(false),
+	m_indexCount(0)
 {
 }
 
@@ -21,74 +22,169 @@ CubeRenderer::~CubeRenderer()
 
 void CubeRenderer::CreateDeviceResources()
 {
-    Direct3DBase::CreateDeviceResources();
+	Direct3DBase::CreateDeviceResources();
 
-	BasicLoader^ loader = ref new BasicLoader(m_d3dDevice.Get());
+	auto loadVSTask = DX::ReadDataAsync("SimpleVertexShader.cso");
+	auto loadPSTask = DX::ReadDataAsync("SimplePixelShader.cso");
 
-    D3D11_INPUT_ELEMENT_DESC vertexDesc[] = 
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-	unsigned int numElements = ARRAYSIZE(vertexDesc);
+	auto createVSTask = loadVSTask.then([this](Platform::Array<byte>^ fileData) {
+		DX::ThrowIfFailed(
+			m_d3dDevice->CreateVertexShader(
+ 				fileData->Data,
+				fileData->Length,
+				nullptr,
+				&m_vertexShader
+				)
+			);
 
-#ifdef USE_ASYNC_LOADING
-    loader->LoadShaderAsync("SimpleVertexShader.cso", layout, numElements, &m_vertexShader, &m_vertexLayout);
-    loader->LoadShaderAsync("SimplePixelShader.cso", &m_pixelShader);
-#else
-    loader->LoadShader("SimpleVertexShader.cso", vertexDesc, numElements, &m_vertexShader, &m_inputLayout);
-    loader->LoadShader("SimplePixelShader.cso", &m_pixelShader);
-#endif
+		const D3D11_INPUT_ELEMENT_DESC vertexDesc[] = 
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
+		DX::ThrowIfFailed(
+			m_d3dDevice->CreateInputLayout(
+				vertexDesc,
+				ARRAYSIZE(vertexDesc),
+				fileData->Data,
+				fileData->Length,
+				&m_inputLayout
+				)
+			);
+	});
 
-	// Create the constant buffers
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-	bd.ByteWidth = (sizeof(ModelViewProjectionConstantBuffer) + 15) / 16 * 16;
-	DX::ThrowIfFailed(
-		m_d3dDevice->CreateBuffer(&bd, nullptr, &m_constantBuffer)
-		);
+	auto createPSTask = loadPSTask.then([this](Platform::Array<byte>^ fileData) {
+		DX::ThrowIfFailed(
+			m_d3dDevice->CreatePixelShader(
+				fileData->Data,
+				fileData->Length,
+				nullptr,
+				&m_pixelShader
+				)
+			);
 
-	m_loadingComplete = true;
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_d3dDevice->CreateBuffer(
+				&constantBufferDesc,
+				nullptr,
+				&m_constantBuffer
+				)
+			);
+	});
+
+	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
+		VertexPositionColor cubeVertices[] = 
+		{
+			{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)},
+			{XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
+			{XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
+			{XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f)},
+			{XMFLOAT3( 0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
+			{XMFLOAT3( 0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f)},
+			{XMFLOAT3( 0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f)},
+			{XMFLOAT3( 0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f)},
+		};
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = {0};
+		vertexBufferData.pSysMem = cubeVertices;
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_d3dDevice->CreateBuffer(
+				&vertexBufferDesc,
+				&vertexBufferData,
+				&m_vertexBuffer
+				)
+			);
+
+		unsigned short cubeIndices[] = 
+		{
+			0,2,1, // -x
+			1,2,3,
+
+			4,5,6, // +x
+			5,7,6,
+
+			0,1,5, // -y
+			0,5,4,
+
+			2,6,7, // +y
+			2,7,3,
+
+			0,4,6, // -z
+			0,6,2,
+
+			1,3,7, // +z
+			1,7,5,
+		};
+
+		m_indexCount = ARRAYSIZE(cubeIndices);
+
+		D3D11_SUBRESOURCE_DATA indexBufferData = {0};
+		indexBufferData.pSysMem = cubeIndices;
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_d3dDevice->CreateBuffer(
+				&indexBufferDesc,
+				&indexBufferData,
+				&m_indexBuffer
+				)
+			);
+	});
+
+	createCubeTask.then([this] () {
+		m_loadingComplete = true;
+		InitialiseModelView();
+	});
 }
 
 Cube^ CubeRenderer::CreateCube()
 {
 	auto cube = ref new Cube();
 	m_cubes.push_back(cube);
-	cube->Create(m_d3dDevice);
 	return cube;
 }
 
 void CubeRenderer::CreateWindowSizeDependentResources()
 {
-    Direct3DBase::CreateWindowSizeDependentResources();
+	Direct3DBase::CreateWindowSizeDependentResources();
 
-    float aspectRatio = m_windowBounds.Width / m_windowBounds.Height;
-    float fovAngleY = 70.0f * XM_PI / 180.0f;
-    if (aspectRatio < 1.0f)
-    {
-        fovAngleY /= aspectRatio;
-    }
+	float aspectRatio = m_windowBounds.Width / m_windowBounds.Height;
+	float fovAngleY = 70.0f * XM_PI / 180.0f;
 
-    m_constantBufferData.projection = XMMatrixTranspose(XMMatrixPerspectiveFovRH(
-        fovAngleY,
-        aspectRatio,
-        0.01f,
-        100.0f
-        ));
+	// Note that the m_orientationTransform3D matrix is post-multiplied here
+	// in order to correctly orient the scene to match the display orientation.
+	// This post-multiplication step is required for any draw calls that are
+	// made to the swap chain render target. For draw calls to other targets,
+	// this transform should not be applied.
+	XMStoreFloat4x4(
+		&m_constantBufferData.projection,
+		XMMatrixTranspose(
+			XMMatrixMultiply(
+				XMMatrixPerspectiveFovRH(
+					fovAngleY,
+					aspectRatio,
+					0.01f,
+					100.0f
+					),
+				XMLoadFloat4x4(&m_orientationTransform3D)
+				)
+			)
+		);
 }
 
-void CubeRenderer::Update(float timeTotal, float timeDelta)
+void CubeRenderer::InitialiseModelView()
 {
     XMVECTOR eye = XMVectorSet(-10.0f, 0.7f, -8.0f, 0.0f);
     XMVECTOR at = XMVectorSet(0.0f, 8.0f, 0.0f, 0.0f);
     XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-    m_constantBufferData.view = XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up));
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
 }
 
 void CubeRenderer::Render()
@@ -119,7 +215,7 @@ void CubeRenderer::Render()
 
 	for(auto& cube : m_cubes)
 	{
-		m_constantBufferData.model = cube->m_modelMatrix;
+		XMStoreFloat4x4(&m_constantBufferData.model, cube->m_modelMatrix);
  
 		m_d3dContext->UpdateSubresource(
 			m_constantBuffer.Get(),
@@ -130,7 +226,23 @@ void CubeRenderer::Render()
 			0
 			);
 
-		cube->RenderBuffers(m_d3dContext);
+		UINT stride = sizeof(VertexPositionColor);
+		UINT offset = 0;
+		m_d3dContext->IASetVertexBuffers(
+			0,
+			1,
+			m_vertexBuffer.GetAddressOf(),
+			&stride,
+			&offset
+			);
+
+		m_d3dContext->IASetIndexBuffer(
+			m_indexBuffer.Get(),
+			DXGI_FORMAT_R16_UINT,
+			0
+			);
+
+		m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		m_d3dContext->IASetInputLayout(m_inputLayout.Get());
 
@@ -153,7 +265,7 @@ void CubeRenderer::Render()
 			);
 
 		m_d3dContext->DrawIndexed(
-			cube->GetIndexCount(),
+			m_indexCount,
 			0,
 			0
 			);

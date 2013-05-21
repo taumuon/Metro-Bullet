@@ -50,18 +50,8 @@ private:
 internal:
 	Cube();
 
-	uint32 GetIndexCount();
-
-	void Create(Microsoft::WRL::ComPtr<ID3D11Device1> &d3dDevice);
-
-	void RenderBuffers(Microsoft::WRL::ComPtr<ID3D11DeviceContext1> &d3dContext);
-
 	void SetTransform(const Transform^ transform);
 
 	DirectX::XMMATRIX m_modelMatrix;
 private:
-	uint32 m_indexCount;
-
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 };
