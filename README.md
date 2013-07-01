@@ -1,6 +1,8 @@
 Metro-Bullet
 ============
 
+This has been superceeded by github.com/taumuon/Taumuon.Game
+
 Demo of using the Bullet Physics Engine in a Windows Store DirectX 11 app.
 
 Email queries to gary@taumuon.co.uk or on this post:
